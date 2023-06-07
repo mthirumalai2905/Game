@@ -1,0 +1,106 @@
+import pygame
+import random
+
+# Initialize Pygame
+pygame.init()
+
+# Set up the game window
+window_width = 800
+window_height = 600
+window = pygame.display.set_mode((window_width, window_height))
+pygame.display.set_caption("Pong")
+
+# Set up colors
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+
+# Set up fonts
+font = pygame.font.Font(None, 36)
+
+# Set up game variables
+paddle_width = 10
+paddle_height = 80
+ball_radius = 10
+paddle_speed = 5
+ball_speed_x = 3
+ball_speed_y = 3
+player_score = 0
+opponent_score = 0
+
+# Create paddles
+player_paddle = pygame.Rect(50, window_height // 2 - paddle_height // 2, paddle_width, paddle_height)
+opponent_paddle = pygame.Rect(window_width - 50 - paddle_width, window_height // 2 - paddle_height // 2, paddle_width, paddle_height)
+
+# Create ball
+ball = pygame.Rect(window_width // 2 - ball_radius // 2, window_height // 2 - ball_radius // 2, ball_radius, ball_radius)
+
+# Game loop
+running = True
+clock = pygame.time.Clock()
+
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+    # Move the paddles
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_w] and player_paddle.y > 0:
+        player_paddle.y -= paddle_speed
+    if keys[pygame.K_s] and player_paddle.y < window_height - paddle_height:
+        player_paddle.y += paddle_speed
+
+    # Move the opponent paddle
+    if opponent_paddle.y < ball.y and opponent_paddle.y < window_height - paddle_height:
+        opponent_paddle.y += paddle_speed
+    if opponent_paddle.y > ball.y and opponent_paddle.y > 0:
+        opponent_paddle.y -= paddle_speed
+
+    # Move the ball
+    ball.x += ball_speed_x
+    ball.y += ball_speed_y
+
+    # Check ball collision with paddles
+    if ball.colliderect(player_paddle) or ball.colliderect(opponent_paddle):
+        ball_speed_x *= -1
+
+    # Check ball collision with walls
+    if ball.y > window_height - ball_radius or ball.y < 0:
+        ball_speed_y *= -1
+
+    # Check if ball goes out of bounds
+    if ball.x > window_width:
+        player_score += 1
+        ball.x = window_width // 2 - ball_radius // 2
+        ball.y = window_height // 2 - ball_radius // 2
+        ball_speed_x *= random.choice([1, -1])
+        ball_speed_y *= random.choice([1, -1])
+    elif ball.x < 0:
+        opponent_score += 1
+        ball.x = window_width // 2 - ball_radius // 2
+        ball.y = window_height // 2 - ball_radius // 2
+        ball_speed_x *= random.choice([1, -1])
+        ball_speed_y *= random.choice([1, -1])
+
+    # Clear the screen
+    window.fill(BLACK)
+
+    # Draw paddles
+    pygame.draw.rect(window, WHITE, player_paddle)
+    pygame.draw.rect(window, WHITE, opponent_paddle)
+
+    # Draw the ball
+    pygame.draw.circle(window, WHITE, (ball.x + ball_radius // 2, ball.y + ball_radius // 2), ball_radius // 2)
+
+    # Draw scores
+    player_score_text = font.render("Player: " + str(player_score), True, WHITE)
+    opponent_score_text = font.render("Opponent: " + str(opponent_score), True, WHITE)
+    window.blit(player_score_text, (50, 10))
+    window.blit(opponent_score_text, (window_width - 200, 10))
+
+    # Update the display
+    pygame.display.update()
+    clock.tick(60)
+
+# Quit the game
+pygame.quit()
